@@ -27,10 +27,11 @@ def save_gradient_image_in_fs(size, path):
 
 
 if __name__ == '__main__':
-    os.makedirs(OUTPUT_PATH, exist_ok=True)
+    task1_output_path = os.path.join(OUTPUT_PATH, "task1")
+    os.makedirs(task1_output_path, exist_ok=True)
     height = 100
     width = 100
-    save_matrix_full_of_value_in_fs((height, width), os.path.join(OUTPUT_PATH, "black.png"), value=0)
-    save_matrix_full_of_value_in_fs((height, width), os.path.join(OUTPUT_PATH, "white.png"), value=255)
-    save_matrix_full_of_value_in_fs((height, width, 3), os.path.join(OUTPUT_PATH, "red.png"), value=(255, 0, 0))
-    save_gradient_image_in_fs((height, width, 3), os.path.join(OUTPUT_PATH, "gradient.png"))
+    save_matrix_full_of_value_in_fs((height, width), os.path.join(task1_output_path, "black.png"), value=0)
+    save_matrix_full_of_value_in_fs((height, width), os.path.join(task1_output_path, "white.png"), value=255)
+    save_matrix_full_of_value_in_fs((height, width, 3), os.path.join(task1_output_path, "red.png"), value=(255, 0, 0))
+    save_gradient_image_in_fs((height, width, 3), os.path.join(task1_output_path, "gradient.png"))

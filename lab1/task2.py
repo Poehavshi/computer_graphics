@@ -52,6 +52,11 @@ def create_line_with_bresenham(x0: int, y0: int, x1: int, y1: int, image: np.nda
     steep = abs(x1 - x0) < abs(y1 - y0)
     x0, y0, x1, y1 = _correct_x_y(x0, y0, x1, y1, steep)
     dx = x1 - x0
+
+    # fixme I don't know what to do with it
+    if dx == 0:
+        return image
+
     dy = y1 - y0
     derror = abs(dy) / dx
     error = 0
@@ -95,11 +100,12 @@ def save_star_image_in_fs(size, path, color=(255, 255, 255), create_line=create_
 
 
 if __name__ == '__main__':
-    os.makedirs(OUTPUT_PATH, exist_ok=True)
-    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(OUTPUT_PATH, "star.png"))
-    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(OUTPUT_PATH, "star_advanced.png"),
+    task2_output_path = os.path.join(OUTPUT_PATH, 'task2')
+    os.makedirs(task2_output_path, exist_ok=True)
+    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(task2_output_path, "star.png"))
+    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(task2_output_path, "star_advanced.png"),
                           create_line=create_advanced_line)
-    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(OUTPUT_PATH, "star_steep.png"),
+    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(task2_output_path, "star_steep.png"),
                           create_line=create_line_with_steep_without_error)
-    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(OUTPUT_PATH, "star_bresenham.png"),
+    save_star_image_in_fs((HEIGHT, WIDTH, 3), os.path.join(task2_output_path, "star_bresenham.png"),
                           create_line=create_line_with_bresenham)
