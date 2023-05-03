@@ -5,6 +5,8 @@ from configs.colors import BLACK, WHITE, RED
 # input
 HEIGHT = 100
 WIDTH = 100
+SIZE = (HEIGHT, WIDTH)
+VERBOSE = True
 
 # output
 ROOT_OUTPUT_PATH = os.path.join(OUTPUT_PATH, "task1")

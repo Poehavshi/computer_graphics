@@ -46,13 +46,12 @@ class Model3d:
                 elif line.startswith('f '):
                     v1, v2, v3 = line[2:].split(' ')
                     num_of_point1, num_of_point2, num_of_point3 = map(int, (
-                        v1.split('/')[0], v2.split('/')[0], v3.split('/')[0]))
+                    v1.split('/')[0], v2.split('/')[0], v3.split('/')[0]))
 
                     num_of_normal1, num_of_normal2, num_of_normal3 = map(int, (
-                        v1.split('/')[2], v2.split('/')[2], v3.split('/')[2]))
+                    v1.split('/')[2], v2.split('/')[2], v3.split('/')[2]))
 
-                    self.faces.append(((num_of_point1, num_of_normal1), (num_of_point2, num_of_normal2),
-                                       (num_of_point3, num_of_normal3)))
+                    self.faces.append(((num_of_point1, num_of_normal1), (num_of_point2, num_of_normal2), (num_of_point3, num_of_normal3)))
                     self.edges.append((num_of_point1, num_of_point2))
                     self.edges.append((num_of_point1, num_of_point3))
                     self.edges.append((num_of_point2, num_of_point3))
@@ -95,7 +94,7 @@ class Model3d:
 
             x1, y1, z1 = map(int, projective_transform(x1, y1, z1, self.ax, self.ay, self.u0, self.v0))
             x2, y2, z2 = map(int, projective_transform(x2, y2, z2, self.ax, self.ay, self.u0, self.v0))
-            if 0 <= x1 < image.shape[1] and 0 <= y1 < image.shape[0] and \
+            if 0 <= x1 < image.shape[1] and 0 <= y1 < image.shape[0] and\
                     0 <= x2 < image.shape[1] and 0 <= y2 < image.shape[0]:
                 create_line_with_bresenham(x1, y1, x2, y2, image, (0, 0, 0))
         return image
@@ -163,9 +162,7 @@ class Model3d:
             # z3 = int(z3 * coefficient + shift)
 
             if cos_angle_of_light > 0:
-                render_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, image, color=color, z_buffer=z_buffer, l0=l0, l1=l1,
-                                l2=l2)
-
+                render_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, image, color=color, z_buffer=z_buffer, l0=l0, l1=l1, l2=l2)
 
 def projective_transform(x, y, z, ax, ay, u0=500, v0=500, tz=1):
     """
@@ -177,7 +174,6 @@ def projective_transform(x, y, z, ax, ay, u0=500, v0=500, tz=1):
     v = ay * y / z + v0
     return int(u), int(v), int(z)
 
-
 def projective_transform2(x, y, z, ax, ay, u0, v0, tz=0.25):
     """
     Transforms 3D point to 2D point using projective transformation.
@@ -188,11 +184,9 @@ def projective_transform2(x, y, z, ax, ay, u0, v0, tz=0.25):
     v = ay * y / (z + tz) + v0
     return int(u), int(v), int(za)
 
-
 def save_rendered_image(model3d, image, path, coefficient=4000, shift=500):
     image = model3d.render_on_image(image, coefficient, shift)
     save_image(image, path)
-
 
 def do_experiment_with_obj(path):
     model = Model3d()
@@ -202,7 +196,6 @@ def do_experiment_with_obj(path):
     save_rendered_image(model, blank_image, os.path.join(OUTPUT_PATH, 'task3', 'model_1_100.png'), 100)
     save_rendered_image(model, blank_image, os.path.join(OUTPUT_PATH, 'task3', 'model_1_500.png'), 500)
     save_rendered_image(model, blank_image, os.path.join(task3_dirname, 'model_1_4000.png'), 4000)
-
 
 texture = Image.open('../data/input/texture.jpg')
 texturing_parameters = []
@@ -227,7 +220,6 @@ with open('../data/input/model_1.obj', 'r') as file:
             array_of_numbers_parameters.append(parameters)
             array_of_numbers_normals.append(list_normals)
 
-
 def extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, normal_1, normal_2, normal_3):
     x_min, y_min = min(x0, x1, x2), min(y0, y1, y2)
     x_max, y_max = max(x0, x1, x2), max(y0, y1, y2)
@@ -235,16 +227,16 @@ def extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, no
         x_min = 0
     if y_min < 0:
         y_min = 0
-    if x_max > 2000:  # 2000 - size
+    if x_max > 2000: #2000 - size
         x_max = 2000
     if y_max > 2000:
         y_max = 2000
 
-    l0 = calculate_cos_angle_of_light(normal_1, light_vector=(0, 0, 1))
-    l1 = calculate_cos_angle_of_light(normal_2, light_vector=(0, 0, 1))
-    l2 = calculate_cos_angle_of_light(normal_3, light_vector=(0, 0, 1))
+    l0 = calculate_cos_angle_of_light(normal_1, light_vector = (0, 0, 1))
+    l1 = calculate_cos_angle_of_light(normal_2, light_vector = (0, 0, 1))
+    l2 = calculate_cos_angle_of_light(normal_3, light_vector = (0, 0, 1))
 
-    z_buffer = np.full((2000, 2000), np.inf, dtype=float)
+    z_buffer = np.full((2000, 2000), np.inf, dtype = float)
 
     for i in range(x_min, x_max + 1):
         for j in range(y_min, y_max + 1):
@@ -259,8 +251,6 @@ def extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, no
                     image_matrix[j, i][1] = color[1] * (abs(lambda0 * l0 + lambda1 * l1 + lambda2 * l2))
                     image_matrix[j, i][2] = color[2] * (abs(lambda0 * l0 + lambda1 * l1 + lambda2 * l2))
                     z_buffer[i, j] = z
-
-
 def extra():
     for i in range(len(model.faces)):
         point0 = model.points[model.faces[i][0][0] - 1]
@@ -284,13 +274,10 @@ def extra():
         u2 = texturing_parameters[array_of_numbers_parameters[i][2] - 1][0]
         v2 = texturing_parameters[array_of_numbers_parameters[i][2] - 1][1]
         extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, normal_1, normal_2, normal_3)
-
-
 def get_model(path):
     model = Model3d()
     model.from_file(path)
     return model
-
 
 image_matrix = create_matrix_full_of_value((2000, 2000, 3), (255, 255, 255))
 model = get_model(os.path.join(INPUT_PATH, 'model_1.obj'))

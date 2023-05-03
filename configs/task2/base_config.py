@@ -7,6 +7,8 @@ from src.drawing.lines import draw_simple_line, draw_advanced_line, draw_line_on
 # input
 HEIGHT = 200
 WIDTH = 200
+SIZE = (HEIGHT, WIDTH)
+VERBOSE = True
 
 # output
 ROOT_OUTPUT_PATH = os.path.join(OUTPUT_PATH, "task2")

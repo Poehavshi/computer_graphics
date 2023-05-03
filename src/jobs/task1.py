@@ -1,15 +1,19 @@
 from src.schema import MatrixImageRGB
-from configs.task1.base_config import HEIGHT, WIDTH, ROOT_OUTPUT_PATH, IMAGES
+from configs.task1.base_config import SIZE, VERBOSE, ROOT_OUTPUT_PATH, IMAGES
 import os
 
 
 def run():
     os.makedirs(ROOT_OUTPUT_PATH, exist_ok=True)
-    size = (HEIGHT, WIDTH)
     matrix_image = MatrixImageRGB()
     for image in IMAGES:
-        image_from_color_config(image, matrix_image, size)
-        matrix_image.save(image["path"])
+        process_single_image(image, matrix_image)
+
+
+def process_single_image(image, matrix_image):
+    image_from_color_config(image, matrix_image, SIZE)
+    matrix_image.save(image["path"])
+    if VERBOSE:
         matrix_image.show()
 
 

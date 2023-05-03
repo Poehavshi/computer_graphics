@@ -2,6 +2,12 @@ import numpy as np
 from configs.colors import WHITE
 
 
+def draw_line(x0: int, y0: int, x1: int, y1: int,
+              image: np.ndarray,
+              color: tuple = WHITE):
+    return draw_line_with_bresenham(x0, y0, x1, y1, image, color)
+
+
 def draw_simple_line(x0: int, y0: int, x1: int, y1: int,
                      image: np.ndarray,
                      color: tuple = WHITE):

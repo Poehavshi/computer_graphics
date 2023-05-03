@@ -4,33 +4,51 @@ import numpy as np
 
 class MatrixImageRGB:
     def __init__(self):
-        self.matrix = None
+        self._matrix = None
         self.height = None
         self.width = None
         self.channels = None
 
     def from_rgb_color(self, size: tuple, rgb_color: int | tuple) -> 'MatrixImageRGB':
-        self.matrix = np.full((*size, 3), rgb_color, dtype=np.uint8)
+        self._matrix = np.full((*size, 3), rgb_color, dtype=np.uint8)
         self.height, self.width, self.channels = self.matrix.shape
         return self
 
     def from_gradient(self, size: tuple) -> 'MatrixImageRGB':
-        self.matrix = np.zeros((*size, 3), dtype=np.uint8)
+        self._matrix = np.zeros((*size, 3), dtype=np.uint8)
         for i in range(size[0]):
             for j in range(size[1]):
                 self.matrix[i, j] = (i + j) % 256
         self.height, self.width, self.channels = self.matrix.shape
         return self
 
+    def from_file(self, path):
+        img = Image.open(path)
+        self._matrix = np.array(img)
+        self.height, self.width, self.channels = self.matrix.shape
+        return self
+
+    def from_numpy(self, np_array):
+        self._matrix = np_array
+        self.height, self.width, self.channels = self.matrix.shape
+        return self
+
+    @property
+    def matrix(self):
+        return self._matrix
+
+    @matrix.setter
+    def matrix(self, new_matrix):
+        self._matrix = new_matrix
+        self.height, self.width, self.channels = self.matrix.shape
+
+    @property
+    def shape(self):
+        return self.matrix.shape
+
     def save(self, path):
         img = Image.fromarray(self.matrix)
         img.save(path)
-
-    def load(self, path):
-        img = Image.open(path)
-        self.matrix = np.array(img)
-        self.height, self.width, self.channels = self.matrix.shape
-        return self.matrix
 
     def show(self):
         img = Image.fromarray(self.matrix)
