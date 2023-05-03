@@ -21,24 +21,26 @@ class ObjModelReader:
     def _parse_line(self, line):
         word = line.split()
         if word[0] == 'v':
-            self.model.add_point((float(word[1]), float(word[2]), float(word[3])))
+            self.model.add_point((float(word[1]), -float(word[2]), float(word[3])))
         elif word[0] == 'vn':
-            self.model.add_point_normal((float(word[1]), float(word[2]), float(word[3])))
+            self.model.add_point_normal((float(word[1]), -float(word[2]), float(word[3])))
         elif word[0] == 'f':
             face = []
             face_normal = []
+            face_texture = []
             for i in range(1, len(word)):
                 face.append(int(word[i].split('/')[0]))
             for i in range(1, len(word)):
+                face_texture.append(int(word[i].split('/')[1]))
+            for i in range(1, len(word)):
                 face_normal.append(int(word[i].split('/')[2]))
             self.model.add_face(tuple(face))
+            self.model.add_face_texture(tuple(face_texture))
             self.model.add_faces_normal(tuple(face_normal))
             self.model.add_edge((face[0], face[1]))
             self.model.add_edge((face[1], face[2]))
             self.model.add_edge((face[2], face[0]))
-        elif word[0] == 'vn':
-            normal = []
-            for i in range(1, len(word)):
-                normal.append(int(word[i].split('/')[0]))
-            self.model.add_point_normal(tuple(normal))
+        elif word[0] == "vt":
+            self.model.add_texture((float(word[1]), float(word[2])))
+
 

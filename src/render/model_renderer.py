@@ -1,17 +1,24 @@
 import numpy as np
 from src.schema.matrix_image import MatrixImageRGB
-from configs.colors import WHITE, BLACK
+from configs.colors import WHITE, BLUE
 from src.drawing.lines import draw_line
+from src.schema.model_3d import Model3d
 
 
 class ModelRenderer:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self, model, ax=4000, ay=4000, z_min=10_000, z_max=20_000, texture_image=None):
+        self.model: Model3d = model
 
-        self.ax = 4000
-        self.ay = 4000
+        self.ax = ax
+        self.ay = ay
+        self.z_min = z_min
+        self.z_max = z_max
         self.u0 = None
         self.v0 = None
+        if texture_image is not None:
+            self.texture_image = texture_image
+        else:
+            self.texture_image = MatrixImageRGB().from_rgb_color((1, 1), BLUE)
 
     def render(self, image) -> MatrixImageRGB:
         if self.v0 is None:
@@ -37,13 +44,15 @@ class ModelRenderer:
             point2 = self.model.points[edge[1] - 1]
             x1, y1, z1 = projective_transform(point1[0], point1[1], point1[2], self.ax, self.ay, self.u0, self.v0)
             x2, y2, z2 = projective_transform(point2[0], point2[1], point2[2], self.ax, self.ay, self.u0, self.v0)
-            if 0 <= x1 < image.shape[1] and 0 <= y1 < image.shape[0] and 0 <= x2 < image.shape[1] and 0 <= y2 < image.shape[0]:
+            if 0 <= x1 < image.shape[1] and 0 <= y1 < image.shape[0] and 0 <= x2 < image.shape[1] and 0 <= y2 < \
+                    image.shape[0]:
                 image = draw_line(x1, y1, x2, y2, image, WHITE)
         return image
 
     def _render_faces(self, image):
-        z_buffer = np.random.randint(10_000, 20_000, size=image.shape[:2])
-        for face, face_normal in zip(self.model.faces, self.model.faces_normals):
+        z_buffer = np.random.randint(self.z_min, self.z_max, size=image.shape[:2])
+        for face, face_normal, face_texture in zip(self.model.faces, self.model.faces_normals,
+                                                   self.model.faces_textures):
             point1, point2, point3 = [self.model.points[i - 1] for i in face]
             x1, y1, z1 = point1
             x2, y2, z2 = point2
@@ -51,8 +60,6 @@ class ModelRenderer:
 
             normal = calculate_normal_for_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3)
             cos_angle_of_light = calculate_cos_angle_of_light(normal, light_vector=(0, 0, 1))
-            BLUE = (0, 0, 255)
-            color = (0, 0, int(BLUE[2] * cos_angle_of_light))
 
             normal_1, normal_2, normal_3 = [self.model.points_normals[i - 1] for i in face_normal]
 
@@ -60,14 +67,27 @@ class ModelRenderer:
             l1 = calculate_cos_angle_of_light(normal_2, light_vector=(0, 0, 1))
             l2 = calculate_cos_angle_of_light(normal_3, light_vector=(0, 0, 1))
 
+            uv0, uv1, uv2 = [self.model.textures[i - 1] for i in face_texture]
+            u0, v0 = uv0
+            u1, v1 = uv1
+            u2, v2 = uv2
+
             x1, y1, z1 = projective_transform(x1, y1, z1, self.ax, self.ay, self.u0, self.v0)
             x2, y2, z2 = projective_transform(x2, y2, z2, self.ax, self.ay, self.u0, self.v0)
             x3, y3, z3 = projective_transform(x3, y3, z3, self.ax, self.ay, self.u0, self.v0)
 
             if cos_angle_of_light > 0:
-                render_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, image, color=color, z_buffer=z_buffer, l0=l0, l1=l1,
-                                l2=l2)
-
+                render_triangle_textured(x1, y1, z1,
+                                         x2, y2, z2,
+                                         x3, y3, z3,
+                                         u0, v0,
+                                         u1, v1,
+                                         u2, v2,
+                                         image,
+                                         texture=self.texture_image,
+                                         z_buffer=z_buffer,
+                                         l0=l0, l1=l1,
+                                         l2=l2)
         return image
 
 
@@ -105,7 +125,6 @@ def calculate_cos_angle_of_light(normal, light_vector=(0, 0, 0)):
     return cos_angle
 
 
-
 def calculate_baricentric_coords(x0, y0, x1, y1, x2, y2, x, y):
     """
     Calculate baricentric coordinates of point (x, y) in triangle (x0, y0), (x1, y1), (x2, y2)
@@ -125,7 +144,15 @@ def calculate_baricentric_coords(x0, y0, x1, y1, x2, y2, x, y):
     return lambda0, lambda1, lambda2
 
 
-def render_triangle(x0, y0, z0, x1, y1, z1, x2, y2, z2, image, color=(0, 0, 0), z_buffer=None, l0=None, l1=None, l2=None):
+def render_triangle_textured(x0, y0, z0,
+                             x1, y1, z1,
+                             x2, y2, z2,
+                             u0, v0,
+                             u1, v1,
+                             u2, v2,
+                             image,
+                             texture=None,
+                             z_buffer=None, l0=None, l1=None, l2=None):
     x_min = min(x0, x1, x2)
     x_max = max(x0, x1, x2)
     y_min = min(y0, y1, y2)
@@ -145,8 +172,10 @@ def render_triangle(x0, y0, z0, x1, y1, z1, x2, y2, z2, image, color=(0, 0, 0), 
             if lambda0 >= 0 and lambda1 >= 0 and lambda2 >= 0:
                 z = lambda0 * z0 + lambda1 * z1 + lambda2 * z2
                 if z_buffer[y, x] > z:
-                    color = list(color)
-                    color = [0, 0, 255 * (lambda0*l0 + lambda1*l1 + lambda2*l2)]
-                    image[y, x] = color
+                    u = image.shape[0] * (lambda0 * u0 + lambda1 * u1 + lambda2 * u2)
+                    v = image.shape[1] * (lambda0 * v0 + lambda1 * v1 + lambda2 * v2)
+                    color_to_draw = texture.getpixel((u, v))
+                    color_to_draw = [color_to_draw[i] * (lambda0 * l0 + lambda1 * l1 + lambda2 * l2) for i in range(3)]
+                    image[y, x] = color_to_draw
                     z_buffer[y, x] = z
     return image
