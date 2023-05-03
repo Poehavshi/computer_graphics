@@ -1,5 +1,5 @@
-from lab1.task11 import calculate_cos_angle_of_light, calculate_normal_for_triangle
-from task1 import create_matrix_full_of_value
+from src.task11 import calculate_cos_angle_of_light, calculate_normal_for_triangle
+from job_1 import create_matrix_full_of_value
 from PIL import Image
 
 
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     POINT_COLOR = (0, 0, 0)
     image = create_matrix_full_of_value((HEIGHT, WIDTH, 3), BACKGROUND_COLOR)
     render_triangle(100, 100, 200, 200, 300, 100, image, POINT_COLOR)
-    save_image(image, "output/triangle.png")
+    save_image(image, "../data/output/triangle.png")
 
     image_with_out_of_bounds = create_matrix_full_of_value((HEIGHT, WIDTH, 3), BACKGROUND_COLOR)
     render_triangle(1100, 100, 200, 200, 300, 300, image_with_out_of_bounds, POINT_COLOR)
-    save_image(image_with_out_of_bounds, "output/triangle_out_of_bounds.png")
+    save_image(image_with_out_of_bounds, "../data/output/triangle_out_of_bounds.png")

@@ -1,14 +1,14 @@
-from random import random, randint, choice
-
 import numpy as np
+from PIL import Image
 
-from config import INPUT_PATH, OUTPUT_PATH
+from configs.config import INPUT_PATH, OUTPUT_PATH
 import os
 import logging
 
-from lab1.task11 import calculate_normal_for_triangle, calculate_cos_angle_of_light
+from src.task11 import calculate_normal_for_triangle, calculate_cos_angle_of_light
+from src.task7 import calculate_baricentric_coords
 from saving_utils import save_image
-from task1 import create_matrix_full_of_value
+from job_1 import create_matrix_full_of_value
 from task2 import create_line_with_bresenham
 from task7 import render_triangle
 
@@ -164,7 +164,6 @@ class Model3d:
             if cos_angle_of_light > 0:
                 render_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, image, color=color, z_buffer=z_buffer, l0=l0, l1=l1, l2=l2)
 
-
 def projective_transform(x, y, z, ax, ay, u0=500, v0=500, tz=1):
     """
     Transforms 3D point to 2D point using projective transformation.
@@ -175,11 +174,19 @@ def projective_transform(x, y, z, ax, ay, u0=500, v0=500, tz=1):
     v = ay * y / z + v0
     return int(u), int(v), int(z)
 
+def projective_transform2(x, y, z, ax, ay, u0, v0, tz=0.25):
+    """
+    Transforms 3D point to 2D point using projective transformation.
+    [u v 1] ~ [ax 0 u0 0 ay v0 0 0 1][[x y z] + [0, 0, tz]]
+    """
+    za = z
+    u = ax * x / (z + tz) + u0
+    v = ay * y / (z + tz) + v0
+    return int(u), int(v), int(za)
 
 def save_rendered_image(model3d, image, path, coefficient=4000, shift=500):
     image = model3d.render_on_image(image, coefficient, shift)
     save_image(image, path)
-
 
 def do_experiment_with_obj(path):
     model = Model3d()
@@ -190,6 +197,93 @@ def do_experiment_with_obj(path):
     save_rendered_image(model, blank_image, os.path.join(OUTPUT_PATH, 'task3', 'model_1_500.png'), 500)
     save_rendered_image(model, blank_image, os.path.join(task3_dirname, 'model_1_4000.png'), 4000)
 
+texture = Image.open('../data/input/texture.jpg')
+texturing_parameters = []
+array_of_numbers_parameters = []
+array_of_numbers_normals = []
+with open('../data/input/model_1.obj', 'r') as file:
+    data = file.read()
+    lines = data.splitlines()
+    for line in lines:
+        word = line.split()
+        if word[0] == 'vt':
+            parameters = []
+            parameters.append(float(word[1]))
+            parameters.append(float(word[2]))
+            texturing_parameters.append(parameters)
+        if word[0] == 'f':
+            parameters = []
+            list_normals = []
+            for i in range(1, len(word)):
+                parameters.append(int(word[i].split('/')[1]))
+                list_normals.append(int(word[i].split('/')[2]))
+            array_of_numbers_parameters.append(parameters)
+            array_of_numbers_normals.append(list_normals)
+
+def extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, normal_1, normal_2, normal_3):
+    x_min, y_min = min(x0, x1, x2), min(y0, y1, y2)
+    x_max, y_max = max(x0, x1, x2), max(y0, y1, y2)
+    if x_min < 0:
+        x_min = 0
+    if y_min < 0:
+        y_min = 0
+    if x_max > 2000: #2000 - size
+        x_max = 2000
+    if y_max > 2000:
+        y_max = 2000
+
+    l0 = calculate_cos_angle_of_light(normal_1, light_vector = (0, 0, 1))
+    l1 = calculate_cos_angle_of_light(normal_2, light_vector = (0, 0, 1))
+    l2 = calculate_cos_angle_of_light(normal_3, light_vector = (0, 0, 1))
+
+    z_buffer = np.full((2000, 2000), np.inf, dtype = float)
+
+    for i in range(x_min, x_max + 1):
+        for j in range(y_min, y_max + 1):
+            lambda0, lambda1, lambda2 = calculate_baricentric_coords(x0, y0, x1, y1, x2, y2, i, j)
+            if (lambda0 > 0) & (lambda1 > 0) & (lambda2 > 0):
+                z = lambda0 * z0 + lambda1 * z1 + lambda2 * z2
+                if z <= z_buffer[i, j]:
+                    u = 2000 * (lambda0 * u0 + lambda1 * u1 + lambda2 * u2)
+                    v = 2000 * (lambda0 * v0 + lambda1 * v1 + lambda2 * v2)
+                    color = texture.getpixel((u, v))
+                    image_matrix[j, i][0] = color[0] * (abs(lambda0 * l0 + lambda1 * l1 + lambda2 * l2))
+                    image_matrix[j, i][1] = color[1] * (abs(lambda0 * l0 + lambda1 * l1 + lambda2 * l2))
+                    image_matrix[j, i][2] = color[2] * (abs(lambda0 * l0 + lambda1 * l1 + lambda2 * l2))
+                    z_buffer[i, j] = z
+def extra():
+    for i in range(len(model.faces)):
+        point0 = model.points[model.faces[i][0][0] - 1]
+        point1 = model.points[model.faces[i][1][0] - 1]
+        point2 = model.points[model.faces[i][2][0] - 1]
+        x0, y0, z0 = point0
+        x1, y1, z1 = point1
+        x2, y2, z2 = point2
+        normal_1 = model.normals[model.faces[i][0][1] - 1]
+        normal_2 = model.normals[model.faces[i][1][1] - 1]
+        normal_3 = model.normals[model.faces[i][2][1] - 1]
+
+        x0, y0, z0 = projective_transform2(x0, y0, z0, 2000, 2000, 1000, 1000)
+        x1, y1, z1 = projective_transform2(x1, y1, z1, 2000, 2000, 1000, 1000)
+        x2, y2, z2 = projective_transform2(x2, y2, z2, 2000, 2000, 1000, 1000)
+
+        u0 = texturing_parameters[array_of_numbers_parameters[i][0] - 1][0]
+        v0 = texturing_parameters[array_of_numbers_parameters[i][0] - 1][1]
+        u1 = texturing_parameters[array_of_numbers_parameters[i][1] - 1][0]
+        v1 = texturing_parameters[array_of_numbers_parameters[i][1] - 1][1]
+        u2 = texturing_parameters[array_of_numbers_parameters[i][2] - 1][0]
+        v2 = texturing_parameters[array_of_numbers_parameters[i][2] - 1][1]
+        extra_drawing(x0, x1, x2, y0, y1, y2, z0, z1, z2, u0, v0, u1, v1, u2, v2, normal_1, normal_2, normal_3)
+def get_model(path):
+    model = Model3d()
+    model.from_file(path)
+    return model
+
+image_matrix = create_matrix_full_of_value((2000, 2000, 3), (255, 255, 255))
+model = get_model(os.path.join(INPUT_PATH, 'model_1.obj'))
+extra()
+image = Image.fromarray(image_matrix, 'RGB')
+image.save('extra.jpg')
 
 if __name__ == '__main__':
     task3_dirname = os.path.join(OUTPUT_PATH, 'task3')

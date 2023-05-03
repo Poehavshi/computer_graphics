@@ -1,9 +1,9 @@
-from task1 import create_matrix_full_of_value
+from job_1 import create_matrix_full_of_value
 from saving_utils import save_image
 import numpy as np
 import os
-from config import OUTPUT_PATH
-from config import HEIGHT, WIDTH
+from configs.config import OUTPUT_PATH
+from configs.config import HEIGHT, WIDTH
 
 
 def create_simple_line(x0: int, y0: int, x1: int, y1: int, image: np.ndarray, color: tuple = (255, 255, 255)):

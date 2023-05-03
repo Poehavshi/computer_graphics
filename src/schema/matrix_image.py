@@ -2,25 +2,25 @@ from PIL import Image
 import numpy as np
 
 
-class MatrixImage:
+class MatrixImageRGB:
     def __init__(self):
         self.matrix = None
         self.height = None
         self.width = None
         self.channels = None
 
-    def create_matrix_full_of_value(self, size: tuple, value: int | tuple) -> np.ndarray:
-        self.matrix = np.full(size, value, dtype=np.uint8)
+    def from_rgb_color(self, size: tuple, rgb_color: int | tuple) -> 'MatrixImageRGB':
+        self.matrix = np.full((*size, 3), rgb_color, dtype=np.uint8)
         self.height, self.width, self.channels = self.matrix.shape
-        return self.matrix
+        return self
 
-    def create_gradient_matrix(self, size: tuple) -> np.ndarray:
-        self.matrix = np.zeros(size, dtype=np.uint8)
+    def from_gradient(self, size: tuple) -> 'MatrixImageRGB':
+        self.matrix = np.zeros((*size, 3), dtype=np.uint8)
         for i in range(size[0]):
             for j in range(size[1]):
                 self.matrix[i, j] = (i + j) % 256
         self.height, self.width, self.channels = self.matrix.shape
-        return self.matrix
+        return self
 
     def save(self, path):
         img = Image.fromarray(self.matrix)

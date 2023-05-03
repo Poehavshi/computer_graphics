@@ -1,7 +1,6 @@
 import numpy as np
-from lab1.saving_utils import save_image
 import os
-from config import OUTPUT_PATH
+from configs.config import OUTPUT_PATH
 
 
 def create_matrix_full_of_value(size: tuple, value: int | tuple) -> np.ndarray:
@@ -14,16 +13,6 @@ def create_gradient_matrix(size: tuple) -> np.ndarray:
         for j in range(size[1]):
             matrix[i, j] = (i + j) % 256
     return matrix
-
-
-def save_matrix_full_of_value_in_fs(size, path, value):
-    matrix = create_matrix_full_of_value(size, value=value)
-    save_image(matrix, path)
-
-
-def save_gradient_image_in_fs(size, path):
-    matrix = create_gradient_matrix(size)
-    save_image(matrix, path)
 
 
 if __name__ == '__main__':
